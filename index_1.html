@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Daily Forge</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#1C1B19" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #1C1B19; color: #EDE6D6; font-family: Georgia, serif; }
+  .forge-display { font-family: 'Oswald', sans-serif; letter-spacing: 0.03em; }
+  .forge-body { font-family: 'Source Serif 4', Georgia, serif; }
+  .forge-mono { font-family: 'JetBrains Mono', monospace; }
+  #root { width: 100%; max-width: 560px; margin: 0 auto; padding: 24px 18px 60px; min-height: 100vh; }
+  .forge-btn { cursor: pointer; border: none; transition: transform 0.15s ease, opacity 0.15s ease; }
+  .forge-btn:active { transform: translateY(0px); opacity: 0.85; }
+  .forge-card { animation: forgeIn 0.4s ease both; }
+  @keyframes forgeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .tally-mark { display: inline-block; width: 3px; height: 20px; background: #C9A227; margin-right: 4px; border-radius: 1px; }
+  .tier-tab { flex: 1; text-align: center; padding: 10px 4px; border-radius: 7px; cursor: pointer; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tier-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-left: 5px; }
+  .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .tier-row { display: flex; gap: 6px; background: #242220; padding: 5px; border-radius: 10px; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+// ============================================================
+// PROBLEM BANK
+// ============================================================
+const EASY = [
+  { cat: "Math", prompt: "A shirt is 20% off, then an extra 10% off the discounted price at checkout. If the original price was $50, what's the final price?",
+    notes: ["Discounts stack multiplicatively, not additively — a 20% then 10% off is NOT the same as 30% off."],
+    answer: "$36", explain: "50 × 0.80 = 40 (after first discount). 40 × 0.90 = 36 (after second). Stacked percentage discounts multiply, they don't just add to 30%." },
+  { cat: "Physics", prompt: "You drop a rock and throw another rock horizontally from the same height at the same time. Which hits the ground first?",
+    notes: ["Vertical motion (falling) and horizontal motion (moving sideways) are independent of each other in projectile motion."],
+    answer: "They land at the same time", explain: "Horizontal velocity doesn't affect vertical acceleration. Both rocks experience the same downward g and fall for the same duration, regardless of horizontal speed." },
+  { cat: "Code", prompt: "What does this print?\n\nx = 5\ny = x\nx = 10\nprint(y)",
+    notes: ["Assignment copies the current value — variables aren't permanently linked after `y = x`."],
+    answer: "5", explain: "When `y = x` runs, y is set to whatever x was at that moment (5). Later changing x to 10 doesn't retroactively change y." },
+  { cat: "Logic", prompt: "All squares are rectangles. This shape is not a rectangle. Can it be a square?",
+    notes: ["This is a basic categorical syllogism — think in terms of set membership (squares are a subset of rectangles)."],
+    answer: "No", explain: "Since every square must be a rectangle, anything that is NOT a rectangle automatically cannot be a square." },
+  { cat: "History", prompt: "Read: Before refrigeration, salt was one of the most valuable trade goods in the world — used to preserve meat and fish for long journeys and winters. Roman soldiers were sometimes partly paid in salt, which some historians link to the origin of the word 'salary.'\n\nWhy would a preservation technology become a form of currency?",
+    notes: ["Think about what makes anything function as money: scarcity, durability, and universal demand."],
+    answer: "Because it was scarce, durable, and universally needed — the same properties that make anything function as currency",
+    explain: "Salt didn't spoil, everyone needed it to survive winters, and it wasn't available everywhere — exactly the properties economists point to when something becomes a de facto currency." },
+  { cat: "Business", prompt: "A café charges $3 for a small coffee and $3.50 for a large, even though the large costs them almost the same to make. Why would they price it that way instead of making the large much more expensive?",
+    notes: ["This is 'anchoring' / decoy pricing — the small size makes the large look like an obviously better deal."],
+    answer: "The small option anchors the price, making the large feel like an obvious value even though margins on it are higher",
+    explain: "By keeping the price gap tiny, the customer's brain compares $3 vs $3.50 and thinks 'why wouldn't I get the large' — nudging most people toward the higher-margin item." },
+  { cat: "Biology", prompt: "Why do leaves change color in autumn instead of just falling off green?",
+    notes: ["Chlorophyll (the green pigment) is what does photosynthesis — but it's not the only pigment in a leaf."],
+    answer: "The green chlorophyll breaks down and is reabsorbed by the tree, revealing yellow/orange pigments that were there all along",
+    explain: "Trees pull nitrogen and chlorophyll back into the trunk before winter to conserve resources. What's left are carotenoids (yellow/orange) that were masked by chlorophyll all summer." },
+  { cat: "Math", prompt: "If you flip a fair coin 3 times, what's the probability of getting at least one heads?",
+    notes: ["Often easier to calculate the opposite event (no heads at all) and subtract from 1."],
+    answer: "7/8", explain: "P(no heads at all) = P(all tails) = (1/2)³ = 1/8. So P(at least one heads) = 1 − 1/8 = 7/8." },
+  { cat: "Code", prompt: "Write, in your head, a one-line way to check if a number n is even in most languages.",
+    notes: ["The modulo operator (%) gives the remainder of division."],
+    answer: "n % 2 == 0", explain: "If a number divides evenly by 2, the remainder is 0. This is the standard idiom across nearly every programming language." },
+  { cat: "Logic", prompt: "What's next in the sequence: 3, 6, 9, 12, __?",
+    notes: ["Look at the constant difference between consecutive terms."],
+    answer: "15", explain: "Each term increases by 3 — a simple arithmetic sequence." },
+  { cat: "Physics", prompt: "Why does a metal spoon in hot soup feel hotter to touch than a wooden spoon in the same soup?",
+    notes: ["This is about thermal conductivity — how quickly a material transfers heat, not how 'hot' it actually is."],
+    answer: "Metal conducts heat much faster than wood, so it transfers heat into your hand more quickly",
+    explain: "Both spoons are at the same temperature, but metal's high thermal conductivity moves that heat into your skin fast, while wood insulates and transfers heat slowly." },
+  { cat: "Economics", prompt: "You already paid $15 for a movie ticket, but 20 minutes in you realize you hate the movie. Should the $15 factor into your decision to leave?",
+    notes: ["This is the 'sunk cost fallacy' — money already spent and unrecoverable shouldn't influence a forward-looking decision."],
+    answer: "No — the $15 is gone either way",
+    explain: "The only relevant question going forward is: is watching the rest of the movie the best use of your next hour? The ticket price is a sunk cost and is irrelevant to that decision." },
+  { cat: "Math", prompt: "A recipe serves 4 and needs 2 cups of flour. How much flour for 10 people?",
+    notes: ["Set up a simple ratio: flour per person, then scale up."],
+    answer: "5 cups", explain: "2 cups / 4 people = 0.5 cups per person. 0.5 × 10 = 5 cups." },
+  { cat: "Systems", prompt: "A thermostat turns the heater on when the room gets cold, and off when it gets warm. What kind of system is this called, and why does it keep the temperature roughly stable rather than swinging wildly?",
+    notes: ["This is a 'feedback loop' — the system's output (temperature) influences its own future behavior (heater on/off)."],
+    answer: "A negative feedback loop",
+    explain: "'Negative' here means self-correcting, not bad — the system responds to deviation by pushing back toward the target, which is why the temperature oscillates in a narrow band instead of drifting away." },
+  { cat: "Code", prompt: "What's the output?\n\nprint(len('hello world'))",
+    notes: ["Spaces count as characters too."],
+    answer: "11", explain: "'hello world' has 11 characters including the space between the words." },
+  { cat: "Philosophy", prompt: "If a tree falls in a forest and no one is around to hear it, does it make a sound?",
+    notes: ["This depends entirely on how you define 'sound' — as a physical phenomenon (pressure waves) or as a perceived experience."],
+    answer: "Depends on the definition of 'sound' you use",
+    explain: "If sound = pressure waves in air, yes, it happens regardless of listeners. If sound = the subjective experience of hearing, then no perceiver means no 'sound' in that sense. The puzzle exposes an ambiguity in language, not a real paradox." },
+];
+
+const MEDIUM = [
+  { cat: "Math", prompt: "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?",
+    notes: ["Set up an equation: let the ball = x, then express the bat in terms of x."],
+    answer: "$0.05", explain: "x + (x + 1.00) = 1.10 → 2x = 0.10 → x = 0.05. Most people's gut says $0.10 — that's the trap of not setting up the algebra." },
+  { cat: "Math", prompt: "Two trains, 60 miles apart, move toward each other at 20 mph and 40 mph. A fly starts on the front train, flies to the other, bounces back and forth at 60 mph until the trains meet. How far does the fly travel in total?",
+    notes: ["Resist the urge to sum an infinite series of back-and-forth trips — find the total TIME first instead."],
+    answer: "60 miles", explain: "The trains close a 60-mile gap at a combined 60 mph, meeting in exactly 1 hour. The fly flies at 60 mph for that full hour, so it covers 60 miles regardless of how many bounces it makes." },
+  { cat: "Physics", prompt: "A 2 kg ball moving at 3 m/s collides head-on and sticks to a stationary 4 kg ball. What's their combined velocity afterward?",
+    notes: ["Use conservation of momentum: total momentum before = total momentum after.", "This is an inelastic collision — kinetic energy is NOT conserved, only momentum is."],
+    answer: "1 m/s", explain: "m1v1 = (m1+m2)v_f → (2)(3) = (6)(v_f) → v_f = 1 m/s." },
+  { cat: "Code", prompt: "Find the bug: this is meant to return the index of the first duplicate value.\n\ndef first_dup(nums):\n    seen = []\n    for i, n in enumerate(nums):\n        if n in seen:\n            return i\n        seen.append(n)\n    return -1",
+    notes: ["Checking `n in seen` on a list scans every element — think about what data structure gives faster lookups."],
+    answer: "No logic bug, but it's inefficient (O(n²))",
+    explain: "It's correct but slow for large inputs because list membership checks are O(n) each. Swapping `seen` to a set makes lookups O(1), turning the whole function O(n)." },
+  { cat: "Logic", prompt: "A man looks at a photo and says, 'Brothers and sisters I have none, but this man's father is my father's son.' Who is in the photo?",
+    notes: ["Work it out step by step: if he has no siblings, who is 'my father's son'?"],
+    answer: "His son", explain: "With no siblings, 'my father's son' can only be the speaker himself. So the photo's subject's father is the speaker — meaning the photo is of the speaker's own son." },
+  { cat: "History", prompt: "Read: Gutenberg's printing press (c. 1440) is often credited with sparking European literacy — but movable type existed in China and Korea centuries earlier. What made Gutenberg's version transformative was a combination: oil-based ink that stuck to metal type, a wine-press mechanism for even pressure, and the Latin alphabet's small character set, which made casting metal type far more practical than for the thousands of characters in Chinese script.\n\nWhy didn't movable type spread as fast in East Asia?",
+    notes: ["The passage gives the mechanism directly — focus on the character-count detail."],
+    answer: "The huge number of unique Chinese characters made casting and managing movable type far less efficient than for a small alphabet",
+    explain: "A 26-letter alphabet needs only a small, reusable set of metal pieces. A writing system with thousands of characters makes casting, storing, and arranging type dramatically more expensive and slow." },
+  { cat: "Business", prompt: "Netflix historically showed 3 pricing tiers, with the middle tier subtly framed as 'Most Popular.' Why does adding a third, higher-priced tier often increase sales of the MIDDLE tier rather than the top one?",
+    notes: ["This is the 'decoy effect' in pricing psychology — an option can shift behavior without anyone choosing it."],
+    answer: "The top tier makes the middle tier look like a reasonable middle ground rather than an expensive splurge",
+    explain: "Without a premium anchor, the middle tier looks like the 'expensive' option. Adding a pricier decoy re-frames the middle tier as the safe, sensible choice — even though few people buy the decoy itself." },
+  { cat: "Economics", prompt: "A country has 100 workers. Automating a factory frees up 20 of them from that job but doesn't increase unemployment nationally. What has to be true elsewhere in the economy for this to happen?",
+    notes: ["Think about where displaced labor has to go for total employment to stay flat — this touches on how economies absorb productivity gains."],
+    answer: "Those 20 workers must be absorbed into other growing sectors or new roles created by the productivity gains",
+    explain: "Historically automation destroys specific jobs but frees up capital/spending that creates demand elsewhere. It only avoids net unemployment if the economy actually generates enough new roles to match — which isn't guaranteed and is a real, debated question." },
+  { cat: "Biology", prompt: "Antibiotic resistance in bacteria increases the more antibiotics are used in a population. Explain the underlying mechanism — why does USING antibiotics more actually make them less effective over time?",
+    notes: ["This is natural selection in action, just on a bacterial timescale of hours instead of generations."],
+    answer: "Antibiotics kill susceptible bacteria, leaving any resistant mutants to survive and reproduce without competition",
+    explain: "Any bacteria with a random mutation conferring resistance now has a huge survival advantage once the antibiotic wipes out competitors. Over many generations (which happen fast in bacteria), resistant strains dominate the population." },
+  { cat: "Math", prompt: "In a room of 23 random people, is it more likely than not that two share a birthday?",
+    notes: ["This isn't about one specific date matching — it's about ANY pair matching. Count the number of possible pairs."],
+    answer: "Yes — about 50.7%", explain: "With 23 people there are C(23,2) = 253 possible pairs. Even though each individual pair is unlikely to match, 253 chances adds up to just over 50% odds of at least one match." },
+  { cat: "Systems", prompt: "A city adds more highway lanes to reduce traffic, but a few years later traffic is just as bad. Why does adding road capacity often fail to reduce congestion long-term?",
+    notes: ["This is called 'induced demand' — a classic case where a system adapts to counteract the intervention meant to fix it."],
+    answer: "The extra capacity attracts new drivers until congestion returns to equilibrium",
+    explain: "Wider roads lower the 'cost' of driving that route, so more people choose to drive, live further out, or shift trip times — the system re-equilibrates around the new capacity rather than staying fixed." },
+  { cat: "Code", prompt: "What does this print, and why is it a classic gotcha?\n\nprint(0.1 + 0.2 == 0.3)",
+    notes: ["Floating-point numbers are stored in binary, and not all decimal fractions convert to binary cleanly."],
+    answer: "False", explain: "0.1 and 0.2 can't be represented exactly in binary floating point. 0.1+0.2 actually evaluates to 0.30000000000000004. Always compare floats with a tolerance, never with `==`." },
+  { cat: "Philosophy", prompt: "The Ship of Theseus: if every plank of a ship is replaced over time, is it still the 'same' ship? Now suppose someone builds a second ship from all the discarded original planks — which one is the 'real' original?",
+    notes: ["This targets what makes identity persist over time: material continuity, form, or function?"],
+    answer: "There's no single correct answer — it depends on which criterion of identity you prioritize",
+    explain: "If identity = continuity of form/function, the repaired ship is 'the same.' If identity = continuity of original matter, the reassembled ship is. This shows 'identity over time' isn't as obvious a concept as it feels." },
+  { cat: "Marketing", prompt: "A brand raises its price and sales go UP. Under what conditions does this make sense, and what does it reveal about how price sometimes functions as a signal rather than just a cost?",
+    notes: ["This applies to goods where price itself communicates something (quality, status) — economists call these 'Veblen goods.'"],
+    answer: "When price acts as a proxy for quality or status, raising it can increase perceived value and desirability",
+    explain: "For status or luxury goods, a higher price can signal exclusivity or quality, actually increasing demand from certain buyers — the opposite of standard supply-demand behavior." },
+  { cat: "Logic", prompt: "If some Blorps are Zeeps, and all Zeeps are Quons, can you conclude that some Blorps are Quons?",
+    notes: ["Trace the chain: does 'some Blorps are Zeeps' guarantee a shared member with the Zeep/Quon relationship?"],
+    answer: "Yes", explain: "If at least one Blorp is a Zeep, and every Zeep is definitely a Quon, that same Blorp must be a Quon. This one chains through a guaranteed shared subset." },
+  { cat: "Physics", prompt: "A ship floats higher in seawater than in freshwater. Why?",
+    notes: ["Recall Archimedes' principle: buoyant force equals the weight of fluid displaced."],
+    answer: "Seawater is denser, so a smaller volume needs to be displaced to support the same weight",
+    explain: "Buoyant force = ρ_fluid × V_displaced × g. Since seawater's density is higher, less volume V is needed to generate enough force to hold the ship up, so it sits higher." },
+];
+
+const HARD = [
+  { cat: "Math", prompt: "You have 8 identical-looking balls, one of which is slightly heavier. Using a balance scale only twice, how do you guarantee finding the heavier ball?",
+    notes: ["Think in terms of splitting into groups that each isolate information from a single weighing — ternary branching, not binary."],
+    answer: "Split into groups of 3, 3, 2. Weigh 3 vs 3 first.",
+    explain: "If 3v3 balances, the heavy ball is among the remaining 2 — weigh those against each other. If 3v3 doesn't balance, take the heavier trio, weigh 1 vs 1 (set one aside) — if those balance, the set-aside ball is heavy; otherwise the heavier one on the scale is it." },
+  { cat: "Code", prompt: "You have a sorted array of 1,000,000 integers. Compare the worst-case number of comparisons for binary search vs linear search, and explain why the difference matters more as data scales, not less.",
+    notes: ["log₂(n) grows extremely slowly compared to n itself — this is the core reason algorithmic complexity dominates hardware speed at scale."],
+    answer: "Binary: ~20 comparisons. Linear: up to 1,000,000.",
+    explain: "log₂(1,000,000) ≈ 19.9. As n grows 1000x, linear search's cost grows 1000x too, but binary search's cost only grows by a handful of extra steps — this gap widens dramatically at larger scales." },
+  { cat: "Physics", prompt: "A spinning ice skater pulls their arms in and speeds up. If pulling the arms in halves the skater's moment of inertia, what happens to their angular velocity?",
+    notes: ["Angular momentum L = Iω is conserved with no external torque — reducing one factor must increase the other proportionally."],
+    answer: "Angular velocity doubles",
+    explain: "L = Iω is constant. If I is halved, ω must double to keep L the same: I(ω) = (I/2)(2ω)." },
+  { cat: "Math", prompt: "A square is inscribed in a circle of radius 5. What is the area of the square?",
+    notes: ["The square's diagonal equals the circle's diameter — relate diagonal length to area using the diagonal-area formula for a square."],
+    answer: "50", explain: "The diagonal = diameter = 10. For a square, area = diagonal² / 2 = 100/2 = 50." },
+  { cat: "Economics", prompt: "A tax on a good is legally paid by the seller, but economists say the actual burden ('incidence') often falls partly or mostly on the buyer instead. Explain the mechanism that determines who really bears the cost of a tax.",
+    notes: ["This depends on the relative elasticity (price-sensitivity) of supply and demand — whichever side is less able to walk away bears more of the burden."],
+    answer: "Tax incidence depends on relative elasticity — the less price-sensitive side absorbs more of the cost",
+    explain: "If demand is inelastic, sellers can pass most of the tax on as higher prices. If supply is inelastic, sellers absorb more. Legal responsibility for paying the tax is separate from who actually bears the economic cost." },
+  { cat: "Systems", prompt: "A company rewards salespeople purely on total revenue closed. Over time, salespeople start discounting heavily to close more deals, hurting overall profit. Diagnose why a seemingly reasonable incentive produced a bad outcome, and propose a fix.",
+    notes: ["This is a case of 'metric gaming' — when you optimize for a proxy (revenue) instead of the real goal (profit), the proxy gets gamed."],
+    answer: "The metric diverged from the true goal; a fix is to incentivize margin or profit contribution instead of raw revenue",
+    explain: "Any measurable proxy for a goal creates pressure to optimize the proxy itself, sometimes at the expense of the real goal (Goodhart's Law). Tying incentives to gross margin realigns incentives with what actually matters." },
+  { cat: "Philosophy", prompt: "The Trolley Problem: a runaway trolley will kill 5 people unless you pull a lever, diverting it to kill 1 instead. Most people say pull the lever. But most people also say it's wrong to push one large person off a bridge to stop the trolley and save the same 5. What's the philosophical distinction driving the different intuitions?",
+    notes: ["This targets the divide between consequentialism (judging by outcomes) and deontology (judging by the nature of the act itself, like using someone as a means)."],
+    answer: "Killing as a side-effect (lever) versus killing as the direct means to an end (pushing) — the 'doctrine of double effect'",
+    explain: "In the lever case, the death is a side effect of redirecting harm. In the push case, the death IS the mechanism — using a person as a means rather than merely foreseeing harm to them." },
+  { cat: "Code", prompt: "Two sorting functions handle the same array of 1,000 elements — one is O(n log n), the other O(n²). Calculate roughly how many more operations the O(n²) one performs.",
+    notes: ["Big-O describes growth rate, not the constant-factor speed of any single run — that's why it matters more at scale."],
+    answer: "Roughly 100x more operations",
+    explain: "n log n ≈ 1000 × ~10 = 10,000. n² = 1,000,000. Ratio ≈ 100x. This gap keeps growing as n increases, eventually dwarfing any constant-factor advantage the O(n²) algorithm might have for tiny inputs." },
+  { cat: "History", prompt: "Read: The Black Death (1347–1351) killed a third to half of Europe's population. Yet for many surviving peasants, the aftermath brought improved economic conditions — labor scarcity let workers demand higher wages, and abundant land became cheaper.\n\nGeneralize: what does this suggest about how supply shocks in labor markets affect the balance of power between labor and capital?",
+    notes: ["The passage describes one historical instance — generalize the underlying economic mechanism beyond this one case."],
+    answer: "Sharp reductions in labor supply generally shift bargaining power toward workers, since employers must compete harder for a scarcer resource",
+    explain: "Any large-scale reduction in available labor (war, disease, mass emigration) tends to increase wages and worker leverage, all else equal, because the fundamental supply-demand mechanics apply regardless of the cause of scarcity." },
+  { cat: "Marketing", prompt: "A company A/B tests two checkout pages and finds Version B converts 15% better. They roll it out and revenue drops. What are at least two pitfalls that could explain this despite a 'winning' test?",
+    notes: ["Consider sample size / statistical significance, novelty effects, and whether the test population represents the full rollout population."],
+    answer: "Possible causes: an underpowered/false-positive result, a novelty effect that fades, or a non-representative test audience",
+    explain: "A/B tests are vulnerable to small samples producing false positives, temporary curiosity boosts that vanish at scale, and selection bias if the tested segment behaves differently than the general population." },
+  { cat: "Biology", prompt: "Sickle cell trait (one gene copy) resists malaria, while two copies cause serious disease. Why hasn't natural selection eliminated the gene from malaria-prone regions?",
+    notes: ["This is 'heterozygote advantage' — a gene harmful in one combination can persist if beneficial in another."],
+    answer: "Carriers (one copy) gain a strong survival advantage against malaria, so the gene persists despite harming those with two copies",
+    explain: "Natural selection acts on net reproductive advantage across the whole population. If carriers survive malaria at much higher rates, the trait persists at a stable frequency even though it's harmful to the unlucky individuals who inherit two copies." },
+  { cat: "Logic", prompt: "Three people split a $30 hotel room, $10 each. The manager realizes it's only $25 and sends $5 back via a bellhop, who can't split it 3 ways, gives $1 to each guest, and pockets $2. Now each paid $9 (total $27), plus the bellhop's $2 makes $29. Where did the missing dollar go?",
+    notes: ["The trick isn't mathematical — it's in how the numbers are being illegitimately added together."],
+    answer: "There is no missing dollar — the framing is flawed",
+    explain: "The $27 the guests paid already INCLUDES the bellhop's $2 ($25 to the hotel + $2 in his pocket = $27). Adding the $2 again on top is invalid double-counting." },
+];
+
+const IMPOSSIBLE = [
+  { cat: "Estimation", prompt: "Fermi problem: how many piano tuners are there in Chicago? You won't know the real number — the point is building a defensible estimate from reasonable assumptions.",
+    notes: ["This is a classic Fermi estimation exercise — break an unknowable number into a chain of estimable sub-quantities.", "There's no single correct answer — the goal is a defensible chain of reasoning."],
+    answer: "No fixed answer — evaluate your own reasoning chain, not a specific number",
+    explain: "A typical approach: population (~2.7M) → households (~1M) → % owning pianos (~5%) → tunings/year/piano (~1) → tunings a tuner does/year (~1000) → divide. The skill is decomposing an unknowable question into estimable ones, and sanity-checking each link." },
+  { cat: "Strategy", prompt: "You're pricing a new product with zero market data — no comparable product exists. How do you set a price with real confidence, given competitor benchmarking is unavailable?",
+    notes: ["Think about what OTHER signals exist when direct competitor pricing doesn't (cost-plus, willingness-to-pay research, value-based framing, anchoring against adjacent categories)."],
+    answer: "No single correct method — evaluate the soundness of your reasoning process",
+    explain: "Strong approaches triangulate: cost to produce + target margin, direct willingness-to-pay interviews, anchoring against the closest adjacent category, and planning to iterate the price once real signal comes in rather than treating it as final." },
+  { cat: "Philosophy", prompt: "Is it possible to prove, with certainty, that the external world exists and isn't a simulation or a dream? Attempt a real argument — not a shrug.",
+    notes: ["Connects to Descartes' method of doubt and 'brain in a vat' thought experiments — genuinely wrestle with the limits of certainty."],
+    answer: "No — this is a genuinely unresolved epistemological problem",
+    explain: "Any evidence you'd cite could itself be part of a simulation, so you can't rule it out from the inside using tools that are potentially compromised. Philosophers generally respond by arguing practical certainty is good enough to act on — itself a debatable move worth forming your own opinion on." },
+  { cat: "Systems", prompt: "Design a conceptual incentive system for reducing global carbon emissions that can't easily be gamed by any single country defecting for short-term gain. What's the fundamental tension you can't fully escape?",
+    notes: ["Connects to game theory's 'tragedy of the commons' and the prisoner's dilemma."],
+    answer: "No clean solution — the core tension (global benefit vs. national incentive) can be mitigated but not fully eliminated",
+    explain: "Any real proposal has to grapple with enforcement across sovereign nations with no higher authority to compel compliance. A strong answer acknowledges this rather than pretending a mechanism fully solves it." },
+  { cat: "Math", prompt: "The Collatz Conjecture: take any positive integer. If even, halve it; if odd, triple it and add 1. Repeat. The conjecture says you always eventually reach 1 — but no one has proven this for all numbers. Try a few numbers by hand.",
+    notes: ["This is a genuinely unsolved problem in mathematics — the exercise is in the exploration, not solving it."],
+    answer: "Unsolved — no proof exists for all integers as of now",
+    explain: "Try 27: it takes 111 steps and climbs above 9,000 before falling to 1 — wildly unpredictable from a trivial-looking rule. This kind of chaotic behavior from simple deterministic rules is exactly why it's resisted proof for nearly a century." },
+  { cat: "Ethics", prompt: "A self-driving car's software must be pre-programmed with logic for unavoidable-accident scenarios. Who should decide that logic — manufacturer, government, buyer, or an ethics board — and what's wrong with each option?",
+    notes: ["There's no consensus in the real world either — regulators, ethicists, and manufacturers are actively unresolved on this."],
+    answer: "No agreed answer — this is a live, unresolved policy and ethics debate",
+    explain: "Manufacturer logic raises liability/trust issues. Government-mandated logic raises encoding one moral framework into law for everyone. Buyer-selected logic turns morality into a purchasable feature. Each surfaces a genuine tension between autonomy, safety, and accountability." },
+  { cat: "Physics", prompt: "Quantum mechanics and general relativity contradict each other at extreme scales (e.g. inside black holes). Why haven't physicists unified them, and what would a successful 'theory of everything' need to do?",
+    notes: ["No math needed — focus on the conceptual mismatch: GR treats gravity as smooth spacetime curvature, QM treats forces as quantized, probabilistic interactions."],
+    answer: "Unsolved — no experimentally verified unification exists yet",
+    explain: "GR describes gravity as continuous curvature of spacetime; QM describes forces via discrete quantum fields and probability. Combining them produces nonsensical infinities in current models, which is why a unifying theory needs new mathematics, not just a merger of the old two." },
+  { cat: "Business", prompt: "A profitable company's stock drops after a great earnings report simply because Wall Street 'expected even better.' Argue for whether markets are fundamentally rational or irrational, using this as one data point.",
+    notes: ["Connects to the real academic debate between the Efficient Market Hypothesis and behavioral economics."],
+    answer: "No consensus — economists genuinely disagree on this",
+    explain: "The efficient-market view says this IS rational: prices reflect expectations, not just raw numbers. The behavioral view says expectations are often driven by herd psychology and overreaction. A strong answer picks a side and defends it against the strongest version of the other." },
+  { cat: "Logic", prompt: "The Sorites Paradox: one grain of sand is not a heap. Adding one grain to a non-heap never turns it into a heap. But eventually you have a heap. Where did it become one — and does this reveal something wrong with logic, or with the concept of 'heap'?",
+    notes: ["A real, unresolved problem in philosophy of language around vague predicates."],
+    answer: "No universally agreed resolution",
+    explain: "One response: vague predicates like 'heap' simply don't have sharp boundaries, revealing a mismatch between binary logic and inherently fuzzy language, not a flaw in reality itself." },
+  { cat: "Biology", prompt: "Consciousness arises from physical brain activity, but no one has explained HOW subjective experience emerges from neurons firing (the 'hard problem of consciousness'). Take your own position on whether this gap is permanently unsolvable or just currently unsolved.",
+    notes: ["One of the most famous open problems in philosophy of mind — engaging seriously with it is the exercise."],
+    answer: "Genuinely unresolved — no scientific or philosophical consensus exists",
+    explain: "Physicalists argue future neuroscience will close the gap. Others argue subjective experience is categorically different from any third-person physical description. Forming and defending your own position is the actual cognitive rep here." },
+];
+
+const TIERS = {
+  Easy: { data: EASY, tone: "#7C9C8E" },
+  Medium: { data: MEDIUM, tone: "#C9A227" },
+  Hard: { data: HARD, tone: "#B0755A" },
+  Impossible: { data: IMPOSSIBLE, tone: "#9B8AA6" },
+};
+const TIER_ORDER = ["Easy", "Medium", "Hard", "Impossible"];
+const CATEGORY_SYMBOL = {
+  Math: "∑", Physics: "⚛", Code: "⌘", Logic: "◎", History: "◈",
+  Business: "◆", Economics: "$", Biology: "❋", Systems: "⟲",
+  Philosophy: "?", Marketing: "▲", Strategy: "♟", Ethics: "†", Estimation: "≈",
+};
+
+// ============================================================
+// STATE (localStorage — persists offline, no account needed)
+// ============================================================
+function dayIndexUTC() {
+  const now = new Date();
+  const start = Date.UTC(now.getFullYear(), 0, 0);
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.floor((today - start) / 86400000);
+}
+function dateKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+const EMPTY_TIER_STATE = { Easy: false, Medium: false, Hard: false, Impossible: false };
+const STORAGE_KEY = "forge-state-v2";
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { streak: 0, longest: 0, lastFullDate: null, history: {} };
+}
+function saveState(state) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+const idx = dayIndexUTC();
+const today = dateKey();
+let state = loadState();
+let activeTier = "Easy";
+let revealedMap = { ...EMPTY_TIER_STATE, ...(state.history[today] || {}) };
+
+const dailyProblems = {};
+TIER_ORDER.forEach((t) => {
+  const pool = TIERS[t].data;
+  dailyProblems[t] = pool[idx % pool.length];
+});
+
+function markDone() {
+  revealedMap[activeTier] = true;
+  const prevDayFlags = state.history[today] || { ...EMPTY_TIER_STATE };
+  const newDayFlags = { ...prevDayFlags, [activeTier]: true };
+  const wasFullBefore = TIER_ORDER.every((t) => prevDayFlags[t]);
+  const isFullNow = TIER_ORDER.every((t) => newDayFlags[t]);
+
+  if (isFullNow && !wasFullBefore) {
+    const yesterday = new Date(Date.now() - 86400000);
+    const yKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+    const continued = state.lastFullDate === yKey;
+    state.streak = continued ? state.streak + 1 : 1;
+    state.longest = Math.max(state.longest, state.streak);
+    state.lastFullDate = today;
+  }
+  state.history[today] = newDayFlags;
+  saveState(state);
+  render();
+}
+
+function setTier(t) {
+  activeTier = t;
+  render();
+}
+
+function esc(s) {
+  const div = document.createElement("div");
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+function render() {
+  const problem = dailyProblems[activeTier];
+  const meta = TIERS[activeTier];
+  const revealed = revealedMap[activeTier];
+  const todayFlags = state.history[today] || EMPTY_TIER_STATE;
+  const tallyCount = Math.min(state.streak, 20);
+
+  const tallyHTML = state.streak > 0
+    ? `<div style="margin-bottom:16px;min-height:20px;display:flex;flex-wrap:wrap;">
+        ${Array.from({length: tallyCount}).map(() => `<span class="tally-mark"></span>`).join("")}
+        ${state.streak > 20 ? `<span class="forge-mono" style="font-size:11px;color:#8B8579;margin-left:6px;">+${state.streak-20} more</span>` : ""}
+      </div>` : "";
+
+  const tabsHTML = TIER_ORDER.map((t) => {
+    const isActive = activeTier === t;
+    const done = todayFlags[t];
+    return `<div class="tier-tab forge-display" data-tier="${t}"
+      style="background:${isActive ? TIERS[t].tone : "transparent"};color:${isActive ? "#1C1B19" : "#B5AFA0"};">
+      ${t}${done ? `<span class="tier-dot" style="background:${isActive ? "#1C1B19" : TIERS[t].tone}"></span>` : ""}
+    </div>`;
+  }).join("");
+
+  const notesHTML = (problem.notes || []).map(n =>
+    `<div class="forge-mono" style="font-size:12px;color:#8B8579;line-height:1.55;margin-bottom:4px;padding-left:12px;border-left:2px solid #3A382F;">${esc(n)}</div>`
+  ).join("");
+
+  const revealHTML = revealed ? `
+    <div style="border-top:1px solid #3A382F;padding-top:16px;">
+      <div class="forge-display" style="font-size:11px;color:#7C9C8E;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;">
+        ${activeTier === "Impossible" ? "Framework" : "Answer"}
+      </div>
+      <div class="forge-body" style="font-size:15px;color:#7C9C8E;margin-bottom:10px;font-weight:600;">${esc(problem.answer)}</div>
+      <div class="forge-display" style="font-size:11px;color:#8B8579;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;">Why</div>
+      <div class="forge-body" style="font-size:14.5px;color:#C9C4B5;line-height:1.6;">${esc(problem.explain)}</div>
+    </div>` : "";
+
+  const actionHTML = !revealed
+    ? `<button id="revealBtn" class="forge-btn forge-display" style="width:100%;padding:13px;border-radius:8px;background:${meta.tone};color:#1C1B19;font-size:14px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Reveal &amp; Log It</button>`
+    : `<div class="forge-body" style="text-align:center;padding:10px;color:#7C9C8E;font-size:13.5px;font-style:italic;">Logged for ${activeTier} today.</div>`;
+
+  const totalCount = EASY.length + MEDIUM.length + HARD.length + IMPOSSIBLE.length;
+
+  document.getElementById("root").innerHTML = `
+    <div class="header-row">
+      <div>
+        <div class="forge-display" style="font-size:12px;color:#8B8579;text-transform:uppercase;letter-spacing:0.15em;">Daily Forge</div>
+        <div class="forge-display" style="font-size:24px;font-weight:600;color:#EDE6D6;margin-top:2px;">Today's Reps</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="forge-mono" style="font-size:10px;color:#8B8579;margin-bottom:3px;">STREAK (ALL 4)</div>
+        <div class="forge-display" style="font-size:20px;font-weight:600;color:#C9A227;">${state.streak}</div>
+      </div>
+    </div>
+    ${tallyHTML}
+    <div class="tier-row">${tabsHTML}</div>
+    <div class="forge-card" style="background:#2A2825;border:1px solid ${meta.tone}33;border-radius:10px;padding:24px 22px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:32px;height:32px;border-radius:8px;background:${meta.tone}22;color:${meta.tone};display:flex;align-items:center;justify-content:center;font-size:16px;">
+          ${CATEGORY_SYMBOL[problem.cat] || "•"}
+        </div>
+        <div>
+          <div class="forge-display" style="font-size:13px;font-weight:600;color:${meta.tone};text-transform:uppercase;letter-spacing:0.08em;">${esc(problem.cat)}</div>
+          <div class="forge-mono" style="font-size:10px;color:#8B8579;">${activeTier}</div>
+        </div>
+      </div>
+      <div class="${problem.cat === "Code" ? "forge-mono" : "forge-body"}" style="font-size:${problem.cat === "Code" ? "13.5px" : "16.5px"};line-height:1.6;color:#EDE6D6;white-space:pre-wrap;margin-bottom:14px;">${esc(problem.prompt)}</div>
+      <div style="margin-bottom:${revealed ? "18px" : "2px"};">${notesHTML}</div>
+      ${revealHTML}
+    </div>
+    ${actionHTML}
+    <div class="forge-mono" style="font-size:10.5px;color:#5F5C52;margin-top:22px;text-align:center;line-height:1.6;">
+      Longest streak: ${state.longest} day${state.longest === 1 ? "" : "s"} · ${totalCount} problems in rotation across ${TIER_ORDER.length} tiers · Works offline
+    </div>
+  `;
+
+  document.querySelectorAll(".tier-tab").forEach(el => {
+    el.addEventListener("click", () => setTier(el.dataset.tier));
+  });
+  const btn = document.getElementById("revealBtn");
+  if (btn) btn.addEventListener("click", markDone);
+}
+
+render();
+
+// Register service worker for offline support
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
