@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Daily Forge</title>
 <link rel="manifest" href="manifest.json" />
-<link rel="icon" href="ico192.png" />
-<link rel="apple-touch-icon" href="ico192.png" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#1C1B19" />
@@ -23,10 +23,10 @@
   .forge-card { animation: forgeIn 0.4s ease both; }
   @keyframes forgeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .tally-mark { display: inline-block; width: 3px; height: 20px; background: #C9A227; margin-right: 4px; border-radius: 1px; }
-  .tier-tab { flex: 1; text-align: center; padding: 10px 4px; border-radius: 7px; cursor: pointer; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-  .tier-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-left: 5px; }
+  .tier-tab { flex: 1; text-align: center; padding: 9px 3px; border-radius: 7px; cursor: pointer; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .tier-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-left: 4px; }
   .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-  .tier-row { display: flex; gap: 6px; background: #242220; padding: 5px; border-radius: 10px; margin-bottom: 18px; }
+  .tier-row { display: flex; gap: 5px; background: #242220; padding: 5px; border-radius: 10px; margin-bottom: 18px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -34,7 +34,7 @@
 
 <script>
 // ============================================================
-// PROBLEM BANK
+// PROBLEM BANK — 72 problems across 5 tiers. No code problems.
 // ============================================================
 const EASY = [
   { cat: "Math", prompt: "A shirt is 20% off, then an extra 10% off the discounted price at checkout. If the original price was $50, what's the final price?",
@@ -43,9 +43,6 @@ const EASY = [
   { cat: "Physics", prompt: "You drop a rock and throw another rock horizontally from the same height at the same time. Which hits the ground first?",
     notes: ["Vertical motion (falling) and horizontal motion (moving sideways) are independent of each other in projectile motion."],
     answer: "They land at the same time", explain: "Horizontal velocity doesn't affect vertical acceleration. Both rocks experience the same downward g and fall for the same duration, regardless of horizontal speed." },
-  { cat: "Code", prompt: "What does this print?\n\nx = 5\ny = x\nx = 10\nprint(y)",
-    notes: ["Assignment copies the current value — variables aren't permanently linked after `y = x`."],
-    answer: "5", explain: "When `y = x` runs, y is set to whatever x was at that moment (5). Later changing x to 10 doesn't retroactively change y." },
   { cat: "Logic", prompt: "All squares are rectangles. This shape is not a rectangle. Can it be a square?",
     notes: ["This is a basic categorical syllogism — think in terms of set membership (squares are a subset of rectangles)."],
     answer: "No", explain: "Since every square must be a rectangle, anything that is NOT a rectangle automatically cannot be a square." },
@@ -64,9 +61,6 @@ const EASY = [
   { cat: "Math", prompt: "If you flip a fair coin 3 times, what's the probability of getting at least one heads?",
     notes: ["Often easier to calculate the opposite event (no heads at all) and subtract from 1."],
     answer: "7/8", explain: "P(no heads at all) = P(all tails) = (1/2)³ = 1/8. So P(at least one heads) = 1 − 1/8 = 7/8." },
-  { cat: "Code", prompt: "Write, in your head, a one-line way to check if a number n is even in most languages.",
-    notes: ["The modulo operator (%) gives the remainder of division."],
-    answer: "n % 2 == 0", explain: "If a number divides evenly by 2, the remainder is 0. This is the standard idiom across nearly every programming language." },
   { cat: "Logic", prompt: "What's next in the sequence: 3, 6, 9, 12, __?",
     notes: ["Look at the constant difference between consecutive terms."],
     answer: "15", explain: "Each term increases by 3 — a simple arithmetic sequence." },
@@ -85,13 +79,25 @@ const EASY = [
     notes: ["This is a 'feedback loop' — the system's output (temperature) influences its own future behavior (heater on/off)."],
     answer: "A negative feedback loop",
     explain: "'Negative' here means self-correcting, not bad — the system responds to deviation by pushing back toward the target, which is why the temperature oscillates in a narrow band instead of drifting away." },
-  { cat: "Code", prompt: "What's the output?\n\nprint(len('hello world'))",
-    notes: ["Spaces count as characters too."],
-    answer: "11", explain: "'hello world' has 11 characters including the space between the words." },
   { cat: "Philosophy", prompt: "If a tree falls in a forest and no one is around to hear it, does it make a sound?",
     notes: ["This depends entirely on how you define 'sound' — as a physical phenomenon (pressure waves) or as a perceived experience."],
     answer: "Depends on the definition of 'sound' you use",
     explain: "If sound = pressure waves in air, yes, it happens regardless of listeners. If sound = the subjective experience of hearing, then no perceiver means no 'sound' in that sense. The puzzle exposes an ambiguity in language, not a real paradox." },
+  { cat: "Ethics", prompt: "A sports team loses a match because of one player's mistake. The coach makes the entire team run extra laps as punishment. Is collective punishment for an individual's error ever fair, and why do so many institutions (military, schools, workplaces) still use it?",
+    notes: ["This is a basic ethics question about individual vs. collective responsibility — a theme that recurs constantly in law, management, and politics."],
+    answer: "No single correct answer — but the common justification is deterrence via peer pressure, at the cost of individual fairness",
+    explain: "Institutions often use collective punishment because it recruits peer accountability (teammates now have a stake in each other's performance) — but it does so by sacrificing the fairness principle that consequences should match individual responsibility. Naming that tradeoff explicitly is the actual exercise." },
+  { cat: "Math", prompt: "You invest $1,000 at 10% annual interest, compounded yearly. Roughly how many years until it doubles, using the 'Rule of 72'?",
+    notes: ["The Rule of 72 is a quick mental-math trick: divide 72 by the interest rate to estimate doubling time."],
+    answer: "About 7.2 years", explain: "72 ÷ 10 = 7.2. It's an approximation (the exact answer via logarithms is closer to 7.27 years), but the Rule of 72 is accurate enough for quick estimates and is a genuinely useful mental tool." },
+  { cat: "Philosophy", prompt: "Two theories both explain the same observed data equally well. One is simple, the other adds extra unnecessary assumptions. Which should you generally prefer, and why isn't 'more detailed' automatically 'more correct'?",
+    notes: ["This is Occam's Razor — a principle of preferring the simplest sufficient explanation, not proof that simple explanations are always true."],
+    answer: "Prefer the simpler explanation, all else being equal",
+    explain: "Occam's Razor isn't a law of nature — it's a practical heuristic. Extra assumptions each carry their own chance of being wrong, and add complexity without added explanatory power, so unless they're independently justified, the simpler theory is the more reasonable default." },
+  { cat: "Physics", prompt: "When a rocket launches, exhaust gas shoots downward out of the engine. Explain, using Newton's third law, why that makes the rocket go up.",
+    notes: ["Newton's third law: every action has an equal and opposite reaction."],
+    answer: "The rocket pushes exhaust gas downward, so the gas pushes the rocket upward with equal force",
+    explain: "The engine expels mass (exhaust) at high speed in one direction; by Newton's third law, the rocket experiences an equal and opposite force, propelling it the other way. This is also why rockets work in the vacuum of space, unlike propellers, since it doesn't need air to push against." },
 ];
 
 const MEDIUM = [
@@ -104,10 +110,6 @@ const MEDIUM = [
   { cat: "Physics", prompt: "A 2 kg ball moving at 3 m/s collides head-on and sticks to a stationary 4 kg ball. What's their combined velocity afterward?",
     notes: ["Use conservation of momentum: total momentum before = total momentum after.", "This is an inelastic collision — kinetic energy is NOT conserved, only momentum is."],
     answer: "1 m/s", explain: "m1v1 = (m1+m2)v_f → (2)(3) = (6)(v_f) → v_f = 1 m/s." },
-  { cat: "Code", prompt: "Find the bug: this is meant to return the index of the first duplicate value.\n\ndef first_dup(nums):\n    seen = []\n    for i, n in enumerate(nums):\n        if n in seen:\n            return i\n        seen.append(n)\n    return -1",
-    notes: ["Checking `n in seen` on a list scans every element — think about what data structure gives faster lookups."],
-    answer: "No logic bug, but it's inefficient (O(n²))",
-    explain: "It's correct but slow for large inputs because list membership checks are O(n) each. Swapping `seen` to a set makes lookups O(1), turning the whole function O(n)." },
   { cat: "Logic", prompt: "A man looks at a photo and says, 'Brothers and sisters I have none, but this man's father is my father's son.' Who is in the photo?",
     notes: ["Work it out step by step: if he has no siblings, who is 'my father's son'?"],
     answer: "His son", explain: "With no siblings, 'my father's son' can only be the speaker himself. So the photo's subject's father is the speaker — meaning the photo is of the speaker's own son." },
@@ -134,9 +136,6 @@ const MEDIUM = [
     notes: ["This is called 'induced demand' — a classic case where a system adapts to counteract the intervention meant to fix it."],
     answer: "The extra capacity attracts new drivers until congestion returns to equilibrium",
     explain: "Wider roads lower the 'cost' of driving that route, so more people choose to drive, live further out, or shift trip times — the system re-equilibrates around the new capacity rather than staying fixed." },
-  { cat: "Code", prompt: "What does this print, and why is it a classic gotcha?\n\nprint(0.1 + 0.2 == 0.3)",
-    notes: ["Floating-point numbers are stored in binary, and not all decimal fractions convert to binary cleanly."],
-    answer: "False", explain: "0.1 and 0.2 can't be represented exactly in binary floating point. 0.1+0.2 actually evaluates to 0.30000000000000004. Always compare floats with a tolerance, never with `==`." },
   { cat: "Philosophy", prompt: "The Ship of Theseus: if every plank of a ship is replaced over time, is it still the 'same' ship? Now suppose someone builds a second ship from all the discarded original planks — which one is the 'real' original?",
     notes: ["This targets what makes identity persist over time: material continuity, form, or function?"],
     answer: "There's no single correct answer — it depends on which criterion of identity you prioritize",
@@ -152,6 +151,21 @@ const MEDIUM = [
     notes: ["Recall Archimedes' principle: buoyant force equals the weight of fluid displaced."],
     answer: "Seawater is denser, so a smaller volume needs to be displaced to support the same weight",
     explain: "Buoyant force = ρ_fluid × V_displaced × g. Since seawater's density is higher, less volume V is needed to generate enough force to hold the ship up, so it sits higher." },
+  { cat: "Ethics", prompt: "Imagine designing the rules for a society, but you don't know in advance whether you'll be born rich or poor, healthy or sick, majority or minority. What kind of rules would you design, and why does this thought experiment claim to produce fairer outcomes than designing rules from your actual position in society?",
+    notes: ["This is philosopher John Rawls's 'veil of ignorance' — a tool for reasoning about fairness by removing self-interest from the decision."],
+    answer: "You'd likely design rules that protect the worst-off, since you might end up there yourself",
+    explain: "Not knowing your position removes the incentive to design self-serving rules. Rawls argued that rational people behind this 'veil of ignorance' would prioritize protecting against worst-case outcomes (e.g. strong social safety nets) rather than maximizing upside for an assumed privileged position." },
+  { cat: "Logic", prompt: "Two suspects are interrogated separately. If both stay silent, both get 1 year. If both betray each other, both get 3 years. If one betrays and the other stays silent, the betrayer goes free and the silent one gets 5 years. Each acts only in their own self-interest — what happens, and why is the outcome worse for both than if they'd cooperated?",
+    notes: ["This is the Prisoner's Dilemma — a foundational game theory scenario showing individually rational choices can produce a collectively worse outcome."],
+    answer: "Both betray each other and get 3 years each — worse than the 1 year they'd get by both staying silent",
+    explain: "Betraying is the 'dominant strategy' for each individual regardless of what the other does (it's always at least as good, often better), but when both follow that logic, they land on a worse outcome than mutual cooperation would have produced. This tension between individual and collective rationality shows up constantly — in business competition, environmental policy, and international relations." },
+  { cat: "Math", prompt: "A game costs $5 to play. You have a 10% chance of winning $40, and a 90% chance of winning nothing. Should you play, based on expected value alone?",
+    notes: ["Expected value = sum of (probability × payout) for each outcome, compared against the cost."],
+    answer: "No — the expected value is below the cost", explain: "Expected payout = 0.10 × $40 + 0.90 × $0 = $4. Since the cost is $5 and expected payout is $4, it's a losing bet on expected value — a good reminder to always compute rather than estimate by gut feeling." },
+  { cat: "Physics", prompt: "An ambulance siren sounds higher-pitched as it approaches you and lower-pitched as it moves away, even though the siren itself never changes. Why?",
+    notes: ["This is the Doppler effect — it applies to any wave, including sound and light."],
+    answer: "The Doppler effect — motion compresses sound waves as the source approaches and stretches them as it recedes",
+    explain: "As the ambulance approaches, each successive sound wave is emitted from a closer position, compressing the wavelength (higher pitch). As it moves away, wavelengths stretch out (lower pitch). The siren's actual frequency never changes — only what reaches your ear does." },
 ];
 
 const HARD = [
@@ -159,10 +173,6 @@ const HARD = [
     notes: ["Think in terms of splitting into groups that each isolate information from a single weighing — ternary branching, not binary."],
     answer: "Split into groups of 3, 3, 2. Weigh 3 vs 3 first.",
     explain: "If 3v3 balances, the heavy ball is among the remaining 2 — weigh those against each other. If 3v3 doesn't balance, take the heavier trio, weigh 1 vs 1 (set one aside) — if those balance, the set-aside ball is heavy; otherwise the heavier one on the scale is it." },
-  { cat: "Code", prompt: "You have a sorted array of 1,000,000 integers. Compare the worst-case number of comparisons for binary search vs linear search, and explain why the difference matters more as data scales, not less.",
-    notes: ["log₂(n) grows extremely slowly compared to n itself — this is the core reason algorithmic complexity dominates hardware speed at scale."],
-    answer: "Binary: ~20 comparisons. Linear: up to 1,000,000.",
-    explain: "log₂(1,000,000) ≈ 19.9. As n grows 1000x, linear search's cost grows 1000x too, but binary search's cost only grows by a handful of extra steps — this gap widens dramatically at larger scales." },
   { cat: "Physics", prompt: "A spinning ice skater pulls their arms in and speeds up. If pulling the arms in halves the skater's moment of inertia, what happens to their angular velocity?",
     notes: ["Angular momentum L = Iω is conserved with no external torque — reducing one factor must increase the other proportionally."],
     answer: "Angular velocity doubles",
@@ -182,10 +192,6 @@ const HARD = [
     notes: ["This targets the divide between consequentialism (judging by outcomes) and deontology (judging by the nature of the act itself, like using someone as a means)."],
     answer: "Killing as a side-effect (lever) versus killing as the direct means to an end (pushing) — the 'doctrine of double effect'",
     explain: "In the lever case, the death is a side effect of redirecting harm. In the push case, the death IS the mechanism — using a person as a means rather than merely foreseeing harm to them." },
-  { cat: "Code", prompt: "Two sorting functions handle the same array of 1,000 elements — one is O(n log n), the other O(n²). Calculate roughly how many more operations the O(n²) one performs.",
-    notes: ["Big-O describes growth rate, not the constant-factor speed of any single run — that's why it matters more at scale."],
-    answer: "Roughly 100x more operations",
-    explain: "n log n ≈ 1000 × ~10 = 10,000. n² = 1,000,000. Ratio ≈ 100x. This gap keeps growing as n increases, eventually dwarfing any constant-factor advantage the O(n²) algorithm might have for tiny inputs." },
   { cat: "History", prompt: "Read: The Black Death (1347–1351) killed a third to half of Europe's population. Yet for many surviving peasants, the aftermath brought improved economic conditions — labor scarcity let workers demand higher wages, and abundant land became cheaper.\n\nGeneralize: what does this suggest about how supply shocks in labor markets affect the balance of power between labor and capital?",
     notes: ["The passage describes one historical instance — generalize the underlying economic mechanism beyond this one case."],
     answer: "Sharp reductions in labor supply generally shift bargaining power toward workers, since employers must compete harder for a scarcer resource",
@@ -202,6 +208,22 @@ const HARD = [
     notes: ["The trick isn't mathematical — it's in how the numbers are being illegitimately added together."],
     answer: "There is no missing dollar — the framing is flawed",
     explain: "The $27 the guests paid already INCLUDES the bellhop's $2 ($25 to the hotel + $2 in his pocket = $27). Adding the $2 again on top is invalid double-counting." },
+  { cat: "Ethics", prompt: "A brilliant surgeon has five patients, each dying from a different organ failure, and one healthy patient in for a routine checkup. If the surgeon secretly harvested the healthy patient's organs, all five could be saved and only one would die — a net gain of four lives by pure body count. Almost everyone says this is monstrous, even though the math matches the trolley lever case. Explain what's actually different here.",
+    notes: ["This is philosopher Judith Jarvis Thomson's 'transplant problem,' designed specifically to stress-test simple 'greatest good for the greatest number' reasoning."],
+    answer: "It violates the patient's rights as an individual by using them purely as a means, and breaks the trust relationship a patient has with a doctor — considerations that pure outcome-counting ignores",
+    explain: "Strict utilitarianism (maximize total lives saved) would endorse the harvesting, which is precisely why most people reject strict utilitarianism as a complete moral theory. The case shows that outcomes alone don't capture everything we care about morally — individual rights, consent, and the nature of the act itself matter too, not just the tally of results." },
+  { cat: "Math", prompt: "Prove there must be at least two people in Hyderabad with the exact same number of hairs on their head (assuming max ~150,000 hairs and a population in the millions), without counting anyone's hair.",
+    notes: ["This is the Pigeonhole Principle: if you place more items into fewer containers than items, at least one container holds more than one item."],
+    answer: "Yes, guaranteed — by the pigeonhole principle",
+    explain: "If there are more people than possible hair-count values (0 to 150,000, about 150,001 possible values), and Hyderabad's population is in the millions, some hair-count value must be shared by more than one person — you don't need to count anything, just compare the size of the two sets." },
+  { cat: "Physics", prompt: "Einstein's thought experiment: a train moves at high speed. Lightning strikes both ends of the train simultaneously, as seen by someone standing on the ground beside the tracks. Does a person sitting in the middle of the moving train also see both strikes as simultaneous?",
+    notes: ["This is the core idea behind special relativity's 'relativity of simultaneity' — different observers can genuinely disagree on what counts as 'at the same time.'"],
+    answer: "No — the person on the train sees the front strike happen first",
+    explain: "Light from both strikes has to travel to the train passenger, but because the train is moving toward the front-strike light and away from the rear-strike light, the front light arrives first from the passenger's frame. Crucially, both observers are correct in their own reference frame — simultaneity isn't absolute, it depends on your frame of motion, one of the most counterintuitive real results in physics." },
+  { cat: "Logic", prompt: "A reliable predictor has, in the past, correctly predicted your choices with high accuracy. You're shown two boxes: Box A always has $1,000. Box B has either $1,000,000 or nothing, depending on what the predictor predicted you'd choose BEFORE you choose. If it predicted you'd take only Box B, it put $1M in it. If it predicted you'd take both boxes, it left B empty. You choose AFTER the prediction is already locked in. Should you take both boxes, or only Box B?",
+    notes: ["This is Newcomb's Paradox — a genuinely contested decision theory problem that splits even expert philosophers and decision theorists."],
+    answer: "No consensus — this genuinely divides expert opinion between 'take both' and 'take only B'",
+    explain: "'Take both' reasoning: the prediction is already locked in, so your current choice can't causally change what's in the boxes — taking both strictly dominates. 'Take only B' reasoning: if the predictor is reliable, then choosing to take only B is correlated with the box already containing $1M, so it's the empirically winning strategy. Both arguments are logically coherent, which is exactly why this problem remains a live debate in decision theory." },
 ];
 
 const IMPOSSIBLE = [
@@ -245,6 +267,61 @@ const IMPOSSIBLE = [
     notes: ["One of the most famous open problems in philosophy of mind — engaging seriously with it is the exercise."],
     answer: "Genuinely unresolved — no scientific or philosophical consensus exists",
     explain: "Physicalists argue future neuroscience will close the gap. Others argue subjective experience is categorically different from any third-person physical description. Forming and defending your own position is the actual cognitive rep here." },
+  { cat: "Ethics", prompt: "Is morality something humans discover (like a law of physics that would be true even if no one believed it) or something humans invent (a useful social construct that varies by culture and time)? Argue your position and address the strongest objection to it.",
+    notes: ["This is the core question of meta-ethics — moral realism vs. anti-realism — and philosophers remain genuinely split on it."],
+    answer: "No consensus — this is one of the most persistently divided questions in philosophy",
+    explain: "Moral realists point to widely shared cross-cultural intuitions (e.g. gratuitous cruelty being wrong) as evidence of objective moral facts. Anti-realists point to real, deep cross-cultural moral disagreement as evidence morality is constructed. Neither side has a knockdown argument, which is exactly what makes this a genuine Impossible-tier question rather than one with a hidden 'correct' answer." },
+  { cat: "Math", prompt: "Gödel's Incompleteness Theorem shows that in any sufficiently powerful mathematical system, there exist true statements that can never be proven true within that system. Sit with this: what does it mean for a statement to be 'true' but 'unprovable' at the same time?",
+    notes: ["This is one of the most conceptually disorienting results in 20th-century mathematics — the goal is genuine engagement with the paradox-like feeling, not a tidy resolution."],
+    answer: "No simple resolution — this is a real, proven limitation on formal mathematical systems, not a puzzle with a trick answer",
+    explain: "Gödel constructed a statement that essentially says 'this statement cannot be proven within this system' — if it were false, the system would be proving a false thing (bad); if true, it's a true statement the system can't prove (which is exactly what it claims). This isn't a language trick — it's a rigorously proven mathematical result showing that truth and provability are NOT the same thing, even in mathematics, which unsettles a lot of intuitive assumptions about what math even is." },
+  { cat: "Physics", prompt: "In quantum mechanics, a particle exists in a 'superposition' of multiple states until it's measured, at which point it 'collapses' into one definite state. What actually counts as a 'measurement,' and why does observation itself seem to change reality at the quantum scale? (This is the unresolved 'measurement problem.')",
+    notes: ["Genuinely one of the most disputed open questions in physics — multiple competing interpretations exist (Copenhagen, Many-Worlds, pilot-wave) with no experimental way yet to distinguish which is correct."],
+    answer: "Unresolved — competing interpretations exist, with no current experiment able to definitively favor one",
+    explain: "The Copenhagen interpretation says measurement genuinely collapses the wave function, with 'measurement' left frustratingly undefined. The Many-Worlds interpretation says collapse never really happens — instead, all outcomes occur in branching parallel universes. Both fit all existing experimental data equally well, meaning the disagreement is currently more philosophical than empirical." },
+];
+
+const ABYSS = [
+  { cat: "Math", prompt: "The P vs NP problem asks: if a solution to a problem can be quickly VERIFIED once given, can it also always be quickly FOUND from scratch? This is arguably the most important unsolved problem in computer science and math, with a $1,000,000 prize still unclaimed. Reason through why verification and discovery might fundamentally differ in difficulty.",
+    notes: ["This underlies nearly all of cryptography, optimization, and computational theory — the entire security of internet encryption implicitly assumes P ≠ NP is true, but nobody has proven it."],
+    answer: "Unsolved — one of the seven Millennium Prize Problems, still open",
+    explain: "Consider a jigsaw puzzle: verifying a completed puzzle is easy (just look at it), but finding the solution from scratch, among astronomically many piece arrangements, can be brutally hard. The open question is whether this apparent asymmetry between 'checking' and 'finding' is a fundamental feature of computation, or just a reflection of our current lack of clever-enough algorithms. Most experts believe P ≠ NP (that finding really is harder than checking), but no one has proven it." },
+  { cat: "Philosophy", prompt: "If every event, including every decision you'll ever make, is the deterministic result of prior physical causes stretching back to the Big Bang, in what sense — if any — do you have free will? Consider 'compatibilism,' the view that free will and determinism can coexist, and decide if you find it convincing or a dodge.",
+    notes: ["This is one of philosophy's oldest and least-resolved debates, sitting at the intersection of physics, ethics, and the felt experience of choosing."],
+    answer: "No consensus — hard determinists, libertarians (free-will believers), and compatibilists remain genuinely divided",
+    explain: "Compatibilists redefine 'free' to mean 'acting according to your own desires and reasoning, without external coercion' — which is compatible with those desires themselves being causally determined. Critics say this just redefines the problem away rather than solving it. There's no experiment that settles this; it's a conceptual disagreement about what 'freedom' should even mean." },
+  { cat: "Physics", prompt: "Given the vast number of stars and probable Earth-like planets in our galaxy alone, statistically intelligent life should likely have arisen many times — yet we've found zero evidence of it. This is the Fermi Paradox. Propose and evaluate at least two competing explanations for the silence.",
+    notes: ["A genuinely unresolved problem straddling astrophysics, biology, and probability — proposed 'solutions' range from mundane to unsettling, and none is confirmed."],
+    answer: "No confirmed answer — dozens of hypotheses exist, none verified",
+    explain: "Candidate explanations include: intelligent life is far rarer than we assume (the 'Great Filter' lies behind us), advanced civilizations tend to self-destruct before becoming detectable (the filter lies ahead of us, ominously), interstellar communication/travel is harder than we assume, or advanced life deliberately avoids contact. Each carries different implications for humanity's own prospects, which is part of why the question is taken seriously rather than dismissed as mere sci-fi." },
+  { cat: "Ethics", prompt: "Imagine a future with an astronomically large population living lives barely worth living, versus a smaller population living excellent lives — and suppose total wellbeing (summed across everyone) is slightly higher in the first scenario. Philosopher Derek Parfit showed that simple 'maximize total wellbeing' reasoning leads to preferring the miserable-but-massive population, a conclusion nearly everyone finds repugnant. Try to fix the underlying moral principle so it avoids this conclusion without breaking elsewhere.",
+    notes: ["This is Parfit's 'Repugnant Conclusion,' a foundational unsolved problem in population ethics that resists every proposed patch found so far."],
+    answer: "Unsolved — no proposed fix has avoided the repugnant conclusion without creating a different, equally uncomfortable conclusion elsewhere",
+    explain: "Switching to 'average wellbeing' instead of 'total' seems to fix it, but that creates new problems (e.g. it can favor a small elite population over adding a happy but below-average person). Every major alternative principle proposed so far has been shown to imply its own uncomfortable conclusion — this is an active, unresolved area of moral philosophy, not a problem with a known patch." },
+  { cat: "Logic", prompt: "The Halting Problem: is there a general algorithm that can look at any computer program and correctly determine whether it will eventually finish running or loop forever? Alan Turing proved the answer is no, for ANY possible algorithm, not just current technology. Try to build an intuition for why this limitation is unavoidable rather than a matter of insufficient cleverness.",
+    notes: ["This is a proven mathematical impossibility (not just an unsolved problem) — worth sitting with the difference between 'we haven't found a way yet' and 'provably no way can exist.'"],
+    answer: "Proven impossible — no such general algorithm can ever exist, for any computer, ever",
+    explain: "Turing's proof uses self-reference: suppose such a halting-checker existed. You could then build a program that does the opposite of what the checker predicts about itself, creating a direct logical contradiction whichever way the checker answers. This forces the conclusion that the checker can't exist in the first place — a rare case of a definitively closed door in computer science, standing in contrast to genuinely open problems like P vs NP." },
+  { cat: "Economics", prompt: "Continuous economic growth (increasing GDP, production, and consumption) is a near-universal policy goal, yet the planet has physically finite resources. Is indefinite economic growth on a finite planet actually possible, or is 'growth' measuring something that can decouple from physical resource use?",
+    notes: ["This is a live, unresolved debate between mainstream growth economics and 'degrowth'/ecological economics — not a settled question with an obvious right side."],
+    answer: "No consensus — hinges on unresolved empirical questions about how far growth can 'decouple' from resource consumption",
+    explain: "One side argues growth can increasingly come from efficiency, services, and information (less physical material per dollar of GDP) — meaning decoupling is possible. The other argues decoupling has never happened fast enough or completely enough in practice, and infinite growth on a finite planet is a mathematical impossibility regardless of cleverness. Both cite real data; the disagreement is about extrapolation and interpretation, not facts in dispute." },
+  { cat: "Biology", prompt: "Life exists on Earth, but no one has ever successfully explained, step by step, how non-living chemistry first became self-replicating, evolving life (abiogenesis). Why does crossing that specific threshold remain so much harder to explain than evolution itself, which is comparatively well understood?",
+    notes: ["Evolution explains how life diversified once it existed. Abiogenesis asks how it started at all — a genuinely separate and far less understood question."],
+    answer: "Unsolved — multiple candidate mechanisms exist (RNA world, hydrothermal vent chemistry, panspermia) but none is confirmed",
+    explain: "The difficulty is that self-replication with heritable variation (the minimum requirement for evolution to even begin operating) is an extraordinarily specific chemical achievement, and it happened once, billions of years ago, leaving no direct fossil trace of the transition itself. Every proposed pathway is plausible chemistry, but none has been demonstrated as the actual historical route, which is why this remains one of biology's biggest open questions." },
+  { cat: "Systems", prompt: "In chaotic systems (weather being the classic example), a tiny difference in starting conditions can produce wildly different outcomes days later — the 'butterfly effect.' Given enough computing power, could we ever perfectly predict such a system far into the future, or is there a fundamental limit even with infinite computation?",
+    notes: ["This touches chaos theory's core insight: some systems are deterministic (governed by exact equations) yet still fundamentally unpredictable in practice."],
+    answer: "Fundamentally limited even with infinite computation — not just a hardware problem",
+    explain: "Because chaotic systems amplify tiny measurement errors exponentially over time, you'd need infinitely precise initial measurements (impossible in a physical universe with real-world measurement limits) to predict arbitrarily far ahead. This means unpredictability here isn't a temporary technological gap — it's closer to a structural feature of certain deterministic systems, a genuinely strange result worth sitting with." },
+  { cat: "Philosophy", prompt: "You've only ever observed the sun rise in the past. What actually justifies the belief that it will rise tomorrow too? Trying to answer 'because it always has' just restates the pattern — it doesn't justify assuming the pattern will continue. This is philosopher David Hume's 'Problem of Induction.' Try to find a non-circular justification.",
+    notes: ["A genuinely unresolved problem in epistemology — inductive reasoning (using past patterns to predict the future) underlies essentially all of science, yet resists rigorous justification."],
+    answer: "No fully non-circular solution has ever been found",
+    explain: "Any attempt to justify induction ('it's worked before, so it'll keep working') itself relies on induction, making the argument circular. Some philosophers argue we should simply accept induction as a basic, unprovable starting assumption (like an axiom); others argue this concedes the entire problem rather than solving it. Science runs on induction daily without this ever being fully resolved philosophically." },
+  { cat: "Physics", prompt: "In an infinite or extremely long-lived universe, random thermal fluctuations could — purely by chance, over vast enough time — briefly assemble a fully functioning, self-aware brain out of chaos, with false memories of a life it never lived, for a fraction of a second before dissolving back into randomness. Statistically, in an old and large enough universe, such 'Boltzmann brains' might vastly outnumber brains that arose the ordinary way (evolution on a planet). What does this thought experiment suggest is wrong with either our understanding of the universe's age/size, or with naive statistical reasoning about existence?",
+    notes: ["This is a real, actively discussed problem in cosmology, not just a curiosity — some cosmological models are considered flawed specifically BECAUSE they predict too many Boltzmann brains."],
+    answer: "Unresolved — physicists treat a cosmological model predicting more Boltzmann brains than ordinary observers as a red flag that something in the model is wrong, but there's no full consensus fix",
+    explain: "If a theory implies you're statistically far more likely to be a random fleeting brain-fluctuation than a real evolved observer, yet your memories and surroundings feel entirely ordinary and consistent, something is likely off in the model's assumptions about the universe's age, size, or eventual fate — but pinning down exactly what needs correcting remains an open problem in theoretical cosmology." },
 ];
 
 const TIERS = {
@@ -252,10 +329,11 @@ const TIERS = {
   Medium: { data: MEDIUM, tone: "#C9A227" },
   Hard: { data: HARD, tone: "#B0755A" },
   Impossible: { data: IMPOSSIBLE, tone: "#9B8AA6" },
+  Abyss: { data: ABYSS, tone: "#7A5C7E" },
 };
-const TIER_ORDER = ["Easy", "Medium", "Hard", "Impossible"];
+const TIER_ORDER = ["Easy", "Medium", "Hard", "Impossible", "Abyss"];
 const CATEGORY_SYMBOL = {
-  Math: "∑", Physics: "⚛", Code: "⌘", Logic: "◎", History: "◈",
+  Math: "∑", Physics: "⚛", Logic: "◎", History: "◈",
   Business: "◆", Economics: "$", Biology: "❋", Systems: "⟲",
   Philosophy: "?", Marketing: "▲", Strategy: "♟", Ethics: "†", Estimation: "≈",
 };
@@ -273,8 +351,8 @@ function dateKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
-const EMPTY_TIER_STATE = { Easy: false, Medium: false, Hard: false, Impossible: false };
-const STORAGE_KEY = "forge-state-v2";
+const EMPTY_TIER_STATE = { Easy: false, Medium: false, Hard: false, Impossible: false, Abyss: false };
+const STORAGE_KEY = "forge-state-v3";
 
 function loadState() {
   try {
@@ -359,7 +437,7 @@ function render() {
   const revealHTML = revealed ? `
     <div style="border-top:1px solid #3A382F;padding-top:16px;">
       <div class="forge-display" style="font-size:11px;color:#7C9C8E;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;">
-        ${activeTier === "Impossible" ? "Framework" : "Answer"}
+        ${(activeTier === "Impossible" || activeTier === "Abyss") ? "Framework" : "Answer"}
       </div>
       <div class="forge-body" style="font-size:15px;color:#7C9C8E;margin-bottom:10px;font-weight:600;">${esc(problem.answer)}</div>
       <div class="forge-display" style="font-size:11px;color:#8B8579;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;">Why</div>
@@ -370,7 +448,7 @@ function render() {
     ? `<button id="revealBtn" class="forge-btn forge-display" style="width:100%;padding:13px;border-radius:8px;background:${meta.tone};color:#1C1B19;font-size:14px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Reveal &amp; Log It</button>`
     : `<div class="forge-body" style="text-align:center;padding:10px;color:#7C9C8E;font-size:13.5px;font-style:italic;">Logged for ${activeTier} today.</div>`;
 
-  const totalCount = EASY.length + MEDIUM.length + HARD.length + IMPOSSIBLE.length;
+  const totalCount = EASY.length + MEDIUM.length + HARD.length + IMPOSSIBLE.length + ABYSS.length;
 
   document.getElementById("root").innerHTML = `
     <div class="header-row">
@@ -379,7 +457,7 @@ function render() {
         <div class="forge-display" style="font-size:24px;font-weight:600;color:#EDE6D6;margin-top:2px;">Today's Reps</div>
       </div>
       <div style="text-align:right;">
-        <div class="forge-mono" style="font-size:10px;color:#8B8579;margin-bottom:3px;">STREAK (ALL 4)</div>
+        <div class="forge-mono" style="font-size:10px;color:#8B8579;margin-bottom:3px;">STREAK (ALL 5)</div>
         <div class="forge-display" style="font-size:20px;font-weight:600;color:#C9A227;">${state.streak}</div>
       </div>
     </div>
@@ -395,7 +473,7 @@ function render() {
           <div class="forge-mono" style="font-size:10px;color:#8B8579;">${activeTier}</div>
         </div>
       </div>
-      <div class="${problem.cat === "Code" ? "forge-mono" : "forge-body"}" style="font-size:${problem.cat === "Code" ? "13.5px" : "16.5px"};line-height:1.6;color:#EDE6D6;white-space:pre-wrap;margin-bottom:14px;">${esc(problem.prompt)}</div>
+      <div class="forge-body" style="font-size:16.5px;line-height:1.6;color:#EDE6D6;white-space:pre-wrap;margin-bottom:14px;">${esc(problem.prompt)}</div>
       <div style="margin-bottom:${revealed ? "18px" : "2px"};">${notesHTML}</div>
       ${revealHTML}
     </div>
