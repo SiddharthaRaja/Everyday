@@ -113,7 +113,7 @@ flowchart TD
 
 **6.1 Deterministic daily rotation.**
 - $i_t = d \bmod n_t$, where $d$ is the day of the year and $n_t$ the pool size of tier $t$.
-- The tiers have co-prime-ish sizes (17, 18, 14, 13, 10), so the *combination* of five problems repeats only after $\operatorname{lcm}(17,18,14,13,10)=278{,}460$ days. Each tier on its own repeats every $n_t$ days.
+- The tiers have co-prime-ish sizes (17, 18, 14, 13, 10), so the *combination* of five problems repeats only after $\operatorname{lcm}(17,18,14,13,10)=139{,}230$ days. Each tier on its own repeats every $n_t$ days.
 - Because $d$ restarts every 1 January, the sequence also "jumps" at New Year. Using days since a fixed epoch would avoid that.
 
 **6.2 Streak logic as a tiny state machine.** The state is `(streak, lastFullDate)`. When a day becomes fully complete:

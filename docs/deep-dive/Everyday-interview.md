@@ -31,7 +31,7 @@ They're genuinely unsolved or contested questions: P vs NP, the measurement prob
 `idx` is the day of the year. For each tier I take `pool[idx % pool.length]` (`:374-378`), so everyone gets the same set on a given date and each tier cycles independently.
 
 **7. [H] How often does the same set of five repeat?**
-Each tier on its own repeats every n days (10 for Abyss). Because the pool sizes are 17, 18, 14, 13 and 10, the exact five-problem combination only repeats after their LCM, 278,460 days. In practice that doesn't matter, because day-of-year resets every January 1st. I'd switch to days since a fixed epoch.
+Each tier on its own repeats every n days (10 for Abyss). Because the pool sizes are 17, 18, 14, 13 and 10, the exact five-problem combination only repeats after their LCM, 139,230 days. In practice that doesn't matter, because day-of-year resets every January 1st. I'd switch to days since a fixed epoch.
 
 **8. [M] How does the streak work?**
 When a reveal makes all five tiers done for today, I check whether `lastFullDate` was yesterday. If so the streak goes up by one, otherwise it resets to 1. `longest` tracks the maximum (`:380-398`).
